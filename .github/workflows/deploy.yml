@@ -48,8 +48,8 @@ jobs:
               <servers>
                 <server>
                   <id>${{ vars.MAVEN_REPO_ID }}</id>
-                  <username>github</username>
-                  <password>${{ secrets.GITHUB_TOKEN }}</password>
+                  <username>${{ secrets.MAVEN_USER }}</username>
+                  <password>${{ secrets.MAVEN_TOKEN }}</password>
                 </server>
               </servers>
             </settings>
