@@ -1,0 +1,47 @@
+name: Deploy artifacts
+
+on: [push, pull_request]
+
+env:
+  MAVEN_REPO_ID: ${{ vars.MAVEN_REPO_ID }}
+  MAVEN_REPO_URL: ${{ vars.MAVEN_REPO_URL }}
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure Maven authentication
+        run: |
+            mkdir -p ~/.m2
+            cat > ~/.m2/settings.xml <<EOF
+            <settings>
+              <profiles>
+                  <profile>
+                    <id>github</id>
+                    <activation>
+                      <activeByDefault>true</activeByDefault>
+                    </activation>
+                    <properties>
+                      <altDeploymentRepository>${{ vars.MAVEN_REPO_ID }}::default::${{ vars.MAVEN_REPO_URL }}</altDeploymentRepository>
+                    </properties>
+                  </profile>
+              </profiles>
+              <servers>
+                <server>
+                  <id>${{ vars.MAVEN_REPO_ID }}</id>
+                  <username>github</username>
+                  <password>${{ secrets.GITHUB_TOKEN }}</password>
+                </server>
+              </servers>
+            </settings>
+            EOF
+      - name: Lookup Maven settings
+        run: cat ~/.m2/settings.xml
+      - name: Deploy Maven artifacts
+        run: mvn package
